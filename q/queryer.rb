@@ -1,9 +1,13 @@
+require 'yaml'
 
 class Queryer
+
   # queryer will attempt to fetch this file relative to the
   #current working directory to get the default configuration
   DatabaseConfigLocation = "config/database.yml"
 
+  # the default relational database to use if adapter is not
+  # provided and no database config file is loaded
   DefaultAdapter = 'mysql'
 
   attr_reader :config
@@ -14,7 +18,6 @@ class Queryer
     else
       config_file = File.join(Dir.pwd, DatabaseConfigLocation)
       if File.exists?(config_file)
-        require 'yaml'
         config = YAML.load_file(config_file).recursively_symbolize_keys
         @config = config && config[:development]
       end

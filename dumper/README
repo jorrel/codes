@@ -1,0 +1,17 @@
+= dumper
+
+== Overview
+
+  Dumps a mysql table into chunks of, by default, 5 million records
+
+  run:
+    dumper -h
+  for more info
+
+
+== Requirements
+
+  ruby
+  rubygems
+  active_support (gem)
+  main (gem)

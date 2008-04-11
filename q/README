@@ -1,0 +1,16 @@
+= q
+
+== Overview
+
+  quickly execute a query to the database
+
+  run:
+    q -h
+  for more info
+
+
+== Requirements
+
+  ruby
+  rubygems
+  main (gem)

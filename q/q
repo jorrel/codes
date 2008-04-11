@@ -1,6 +1,6 @@
 #! /usr/bin/env ruby
 
-# mysql database query-er
+# database query-er
 
 require 'rubygems'
 require 'main'
