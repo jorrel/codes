@@ -1,0 +1,56 @@
+#! /usr/bin/env ruby
+
+# mysql database query-er
+
+require 'rubygems'
+require 'main'
+
+require File.join(File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__), 'queryer.rb')
+
+$queryer = Queryer.new
+
+Main {
+  keyword(:database) {
+    description 'the database to query from (default differs)'
+    default $queryer.default(:database)
+  }
+
+  keyword(:username) {
+    description 'the database user'
+    default $queryer.default(:username)
+  }
+
+  keyword(:password) {
+    description 'the database password for the user'
+    default $queryer.default(:password)
+  }
+
+  keyword(:hostname) {
+    description 'database hostname'
+    default $queryer.default(:hostname)
+  }
+
+  keyword(:encoding) {
+    description 'database encoding (TODO)'
+    default $queryer.default(:encoding)
+  }
+
+  keyword(:adapter) {
+    description 'relational database to use'
+    default $queryer.default(:adapter)
+  }
+
+  option(:debug, :d) {
+    description 'enable debugging outputs'
+    default false
+  }
+
+  argument(:query) {
+    description 'the query to perform (enclose this in quotes)'
+  }
+
+  def run
+    $queryer.override_config params.to_h.inject({}) { |h, (k,v)| h[k] = v.value; h }
+    $queryer.perform params[:query].value
+  end
+}
