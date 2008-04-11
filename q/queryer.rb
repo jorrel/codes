@@ -3,7 +3,7 @@ require 'yaml'
 class Queryer
 
   # queryer will attempt to fetch this file relative to the
-  #current working directory to get the default configuration
+  # current working directory to get the default configuration
   DatabaseConfigLocation = "config/database.yml"
 
   # the default relational database to use if adapter is not

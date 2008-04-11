@@ -1,17 +1,16 @@
 #! /usr/bin/env ruby
 
-# database query-er
-
 require 'rubygems'
 require 'main'
 
-require File.join(File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__), 'queryer.rb')
+$:.unshift File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__)
+require 'queryer'
 
 $queryer = Queryer.new
 
 Main {
   keyword(:database) {
-    description 'the database to query from (default differs)'
+    description 'the database to query from'
     default $queryer.default(:database)
   }
 
