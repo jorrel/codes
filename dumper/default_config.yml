@@ -1,0 +1,6 @@
+# default configuration for dumper
+user: root
+host: localhost
+password:
+increments: 5000000
+debug: false

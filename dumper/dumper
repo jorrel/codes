@@ -1,0 +1,113 @@
+#! /usr/bin/env ruby
+require 'rubygems'
+require 'active_support'
+require 'main'
+
+# load the default configuration
+config_file = File.join(File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__), 'default_config.yml')
+$config = YAML.load_file(config_file).symbolize_keys
+
+Main {
+  argument('database') {
+    description 'Name of the database'
+  }
+
+  argument('table') {
+    description 'Name of the table to dump'
+  }
+
+  argument('destination') {
+    description 'Directory where the dumps will be placed (defaults to \'./\')'
+    default './'
+  }
+
+  keyword('user') {
+    description 'MySQL user'
+    default $config[:user]
+  }
+
+  keyword('password') {
+    description 'MySQL password'
+    default $config[:password]
+  }
+
+  keyword('host') {
+    description 'MySQL host'
+    default $config[:host]
+  }
+
+  keyword('increments') {
+    cast :int
+    description 'Max number of records per dump'
+    defaults $config[:increments]
+  }
+
+  option('debug', 'd') {
+    cast :boolean
+    arity 0
+    description 'Turns the debugging on (verbose)'
+    defaults $config[:debug]
+  }
+
+  option('noperform', 'n') {
+    cast :boolean
+    arity 0
+    description 'Do not perform the actual dump (use with --debug)'
+    defaults false
+  }
+
+  def run
+    setup_further_configs
+    examine_config
+    prepare_dump_commands
+    execute_dump!
+  end
+
+  private
+
+    def debug?; !!config(:debug); end
+    def debug(str); puts str if debug?; end
+    def execute!(cmd); debug(cmd); `#{cmd}`; end
+    def config(key); ((v = params[key.to_s]) && v.value) || $config[key.to_sym]; end
+
+    def setup_further_configs
+      @login_args = "-u #{config(:user)}#{config(:password).blank? ? '' : ' --password=' + config(:password)} -h #{config(:host)}"
+      @base_command = "mysql -U -B -X #{@login_args} #{config(:database)}"
+      @max = Hash.from_xml(execute!("#{@base_command} -e \"select max(id) from #{config(:table)}\""))['resultset']['row']['field'].to_i
+    end
+
+    def examine_config
+      debug "\n Configuration:"
+      %w(user host password increments database table debug).each { |key|
+        debug "\t#{key}: #{config(key)}"
+      }
+      debug "\trecords: #{@max}\n"
+
+      if config(:noperform) and !config(:debug)
+        puts "Note: pass the --debug flag when using --noperform to see debug outputs"
+      end
+    end
+
+    def prepare_dump_commands
+      @dump_commands = []
+      min, max = 0, config(:increments)
+      until min > @max
+        if @dump_commands.empty? # initial command (includes the table structure)
+          args = "--where=\"id <= #{max}\" --disable-keys=FALSE"
+        else
+          args = "--where=\"id > #{min} AND id <= #{max}\" -e --no-create-info --add-drop-table=FALSE --disable-keys=FALSE"
+        end
+        dest = File.join("#{config(:destination)}", "#{config(:table)}_#{min}_to_#{max}.sql")
+        @dump_commands << "mysqldump #{@login_args} #{args} #{config(:database)} #{config(:table)} > #{dest}"
+        min, max = max, max + config(:increments)
+      end
+    end
+
+    def execute_dump!
+      unless config(:noperform)
+        @dump_commands.each(&method(:execute!))
+      else
+        @dump_commands.each(&method(:debug))
+      end
+    end
+}
