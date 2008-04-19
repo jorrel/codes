@@ -26,10 +26,11 @@ Main {
 
   def run
     col = params[:column].value
+    items = input.split("\n").map { |line| (line.strip.split(/\s+/).unshift('')[col] || '') }
     if params[:compressed].value
-      STDOUT.write input.split("\n").map { |line| (line.split(/\s+/).unshift('')[col] || '') }.reject { |v| v.empty? }.join(' ')
+      puts items.collect{|i| i.strip }.reject{|i| i.empty? }.join(' ')
     else
-      STDOUT.write input.split("\n").map { |line| (line.split(/\s+/).unshift('')[col] || '') + "\n" }
+      puts items.join("\n")
     end
   end
 
