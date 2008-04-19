@@ -1,0 +1,42 @@
+#! /usr/bin/env ruby
+require 'rubygems'
+require 'main'
+require 'timeout'
+
+Main {
+  description 'get only a particular column from STDIN'
+  usage['EXAMPLES'] = <<-txt
+    $ ps aux | clm 11
+    - fetch only the 11th column from the output of ps aux
+
+    $ gem list | clm 1 --compressed
+    - get all installed gems separated by spaces
+  txt
+  author 'jorrel ang'
+
+  argument(:column) {
+    description 'column number'
+    cast :int
+  }
+
+  option(:compressed, :c) {
+    description 'compress all into one line'
+    cast :bool
+  }
+
+  def run
+    col = params[:column].value
+    if params[:compressed].value
+      STDOUT.write input.split("\n").map { |line| (line.split(/\s+/).unshift('')[col] || '') }.reject { |v| v.empty? }.join(' ')
+    else
+      STDOUT.write input.split("\n").map { |line| (line.split(/\s+/).unshift('')[col] || '') + "\n" }
+    end
+  end
+
+  def input
+    Timeout.timeout(3) { $input = STDIN.read || '' }
+  rescue Timeout::Error
+    STDERR.write "error: no input found from STDIN\n"
+    exit
+  end
+}

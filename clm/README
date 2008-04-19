@@ -1,0 +1,26 @@
+NAME
+  clm
+
+SYNOPSIS
+  clm column [options]+
+
+DESCRIPTION
+  get only a particular column from STDIN
+
+PARAMETERS
+  column (1 -> int(column)) 
+      column number 
+  --compressed, -c 
+      compress all into one line 
+  --help, -h 
+
+AUTHOR
+  jorrel ang
+
+EXAMPLES
+  $ ps aux | clm 11
+  - fetch only the 11th column from the output of ps aux
+  
+  $ gem list | clm 1 --compressed
+  - get all installed gems separated by spaces
+
