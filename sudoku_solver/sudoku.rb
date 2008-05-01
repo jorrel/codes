@@ -1,27 +1,8 @@
 require 'rubygems'
-
-# because shoes uses its own ruby, we need to specify this
-# TODO: remove active_support dependency
-$: << '/usr/lib/ruby/gems/1.8/gems/activesupport-2.0.2/lib'
-$: << '/usr/lib/ruby/gems/1.8/gems/activesupport-2.0.2/lib/active_support'
-$: << '/usr/lib/ruby/1.8'
-require 'active_support'
-
 require 'timeout'
 
-class Array
-  def none?(&block)
-    not any?(&block)
-  end
-
-  def uniq_contents?
-    size == uniq.size
-  end
-
-  def no_dup_of_non_zero_nums?
-    map(&:to_i).reject(&:zero?).uniq_contents?
-  end
-end
+$:.unshift File.join(File.dirname(__FILE__))
+require 'core_ext'
 
 module Sudoku
   class InvalidBoard < ArgumentError; end
@@ -110,7 +91,7 @@ module Sudoku
           proc { |a| a.transpose.all? { |b| b.no_dup_of_non_zero_nums? } }, # no same number in 1 column
           proc { |cells|                                                    # no same number in 1 set
             s = 3; rng = (0...s)
-            sets = returning([]) { |sets|
+            sets = [].tap { |sets|
               rng.each do |r|
                 rng.each do |c|
                   sets << rng.collect { |r2| rng.collect { |c2| cells[s*r+r2][s*c+c2] } }.flatten
@@ -163,7 +144,7 @@ module Sudoku
       def box_sets
         s = 3             # size basic sudoku has size 3 (3 x 3 x 3 x 3)
         rng = (0...s)
-        returning [] do |sets|
+        [].tap do |sets|
           rng.each do |r|
             rng.each do |c|
               sets << rng.collect { |r2| rng.collect { |c2| cells[s*r+r2][s*c+c2] } }.flatten
@@ -195,7 +176,6 @@ module Sudoku
       class Cell
         attr_reader :value, :fixed
         alias :fixed? :fixed
-        delegate :blank?, :to => :value
 
         def initialize(value, fixed = true)
           @fixed = fixed
@@ -204,6 +184,10 @@ module Sudoku
 
         def set(value)
           @value = Sudoku::Board::Cell.empty?(value) ? nil : value.to_i
+        end
+
+        def blank?
+          value.blank?
         end
 
         def clear
