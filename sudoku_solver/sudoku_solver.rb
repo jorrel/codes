@@ -2,7 +2,6 @@
 
 $: << File.dirname(__FILE__)
 require 'sudoku'
-require 'timeout'
 
 Shoes.app(:width => 500, :height => 500) {
 
@@ -37,11 +36,9 @@ Shoes.app(:width => 500, :height => 500) {
       puts "given board: \n#{board.inspect}\n"
 
       begin
-        Timeout.timeout(8) {
-          solution = board.solution
-          puts "solution: \n#{solution.inspect}"
-          alert "solution: \n#{solution.inspect}"
-        }
+        solution = board.solution
+        puts "solution: \n#{solution.inspect}"
+        alert "solution: \n#{solution.inspect}"
       rescue Timeout::Error
         alert("Sudoku Solver is taking a very long time.\n Please check your board.")
       end

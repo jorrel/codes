@@ -7,6 +7,7 @@ $: << '/usr/lib/ruby/gems/1.8/gems/activesupport-2.0.2/lib/active_support'
 $: << '/usr/lib/ruby/1.8'
 
 require 'active_support'
+require 'timeout'
 
 class Array
   def none?(&block)
@@ -32,7 +33,7 @@ module Sudoku
     end
 
     def solutions
-      find_solution
+      Timeout.timeout(8) { find_solution }
     end
 
     def next_blank_cell
