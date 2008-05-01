@@ -3,11 +3,11 @@
 # solves sudoku puzzles through brute-force approach
 #
 # == command line usage:
-#   ruby sudoku_solver.rb <puzzle_file>
+#   ruby cli_sudoku_solver.rb <puzzle_file>
 #   # or
-#   ./sudoku_solver.rb <puzzle_file>
+#   ./cli_sudoku_solver.rb <puzzle_file>
 #   # or to profile:
-#   ruby sudoku_solver.rb <puzzle_file> --profile
+#   ruby cli_sudoku_solver.rb <puzzle_file> --profile
 
 require 'sudoku'
 require 'benchmark'

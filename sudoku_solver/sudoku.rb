@@ -1,4 +1,11 @@
 require 'rubygems'
+
+# because shoes uses its own ruby, we need to specify this
+# TODO: remove active_support dependency (this slows down the app anyway)
+$: << '/usr/lib/ruby/gems/1.8/gems/activesupport-2.0.2/lib'
+$: << '/usr/lib/ruby/gems/1.8/gems/activesupport-2.0.2/lib/active_support'
+$: << '/usr/lib/ruby/1.8'
+
 require 'active_support'
 
 class Array
