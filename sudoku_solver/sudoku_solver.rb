@@ -18,10 +18,10 @@ Shoes.app(:width => 520, :height => 550) {
             stack(:width => 50) {
               @cells[i][j] = edit_line :width=> 50, :height => 50
             }
-            stack(:width => 20) { } if d == 2 && j != 8
+            stack(:width => 20) { } if d == 2 && j != 8  # vertical separator
           }
         }
-        stack(:width => '100%') { para '' } if b == 2 && a != 2
+        stack(:width => '100%') { para '' } if b == 2 && a != 2  # horizontal separator
       }
     }
 
