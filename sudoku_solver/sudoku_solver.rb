@@ -3,12 +3,12 @@
 $: << File.dirname(__FILE__)
 require 'sudoku'
 
-Shoes.app(:width => 500, :height => 500) {
+Shoes.app(:width => 520, :height => 550) {
 
   flow(:width => '100%', :margin => 10) {
 
     # display the board
-    @cells = (0...9).collect { (0...9).collect { '' } }  # raw 2 dimensional array
+    @cells = Sudoku::Board.empty.to_a
     s = 3; rng = (0...s)
     rng.each { |a|
       rng.each { |b|
@@ -18,8 +18,10 @@ Shoes.app(:width => 500, :height => 500) {
             stack(:width => 50) {
               @cells[i][j] = edit_line :width=> 50, :height => 50
             }
+            stack(:width => 20) { } if d == 2 && j != 8
           }
         }
+        stack(:width => '100%') { para '' } if b == 2 && a != 2
       }
     }
 
