@@ -62,6 +62,10 @@ Shoes.app(:width => 520, :height => 550) {
     button('Reset') {
       update_puzzle(Sudoku::Board.empty)
     }
+
+    button('Exit') {
+      exit
+    }
   }
 
   def load_puzzle(file)
