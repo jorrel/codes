@@ -81,6 +81,11 @@ module Sudoku
     end
 
     class << self
+      # create an empty board
+      def empty
+        new (0...9).collect { (0...9).collect { '' } }
+      end
+
       def valid?(array)
         conditions = [
           proc { |a| a.is_a?(Array) and a.all? { |b| b.is_a?(Array) } },  # 2 dimensional array

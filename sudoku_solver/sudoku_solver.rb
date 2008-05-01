@@ -44,7 +44,31 @@ Shoes.app(:width => 500, :height => 500) {
       end
     }
 
-#     button('Sample') {
-#     }
+    button('Sample1') {
+      load_puzzle('puzzle1')
+    }
+
+    button('Sample2') {
+      load_puzzle('puzzle2')
+    }
+
+    button('Reset') {
+      update_puzzle(Sudoku::Board.empty)
+    }
   }
+
+  def load_puzzle(file)
+    puzzle_location = File.join(File.dirname(__FILE__), 'puzzles', file)
+    puzzle = File.read(puzzle_location).split(/\n+/).reject { |line| line =~ /^(\#|\s*$)/ }.map { |line| line.split(/\s+/) }
+    board = Sudoku::Board.new(puzzle)
+    update_puzzle board
+  end
+
+  def update_puzzle(board)
+    (rng = (0...9)).each { |i|
+      rng.each { |j|
+        @cells[i][j].text = board.cells[i][j].value.to_s
+      }
+    }
+  end
 }
