@@ -13,9 +13,19 @@ class Array
   def none?(&block)
     not any?(&block)
   end
+
+  def uniq_contents?
+    size == uniq.size
+  end
+
+  def no_dup_of_non_zero_nums?
+    map(&:to_i).reject(&:zero?).uniq_contents?
+  end
 end
 
 module Sudoku
+  class InvalidBoard < ArgumentError; end
+
   # a sudoku board
   # board = Sudoku::Board.new(two_dimentional_array)  # non-numbers will be treated as blanks
   # board.solution                                    # get the first solution found
@@ -23,8 +33,8 @@ module Sudoku
   class Board
     attr_reader :cells
 
-    def initialize(cells)
-      assert_valid_board cells
+    def initialize(cells, options = {})
+      assert_valid_board cells unless options[:validate] == false
       create cells
     end
 
@@ -86,24 +96,42 @@ module Sudoku
         new (0...9).collect { (0...9).collect { '' } }
       end
 
+      # new board bypassing validation (used mainly for testing)
+      def unvalidated(array)
+        new(array, :validate => false)
+      end
+
       def valid?(array)
         conditions = [
-          proc { |a| a.is_a?(Array) and a.all? { |b| b.is_a?(Array) } },  # 2 dimensional array
-          proc { |a| a.map(&:size).all? { |size| size == a.size } },      # row = cols
+          proc { |a| a.is_a?(Array) and a.all? { |b| b.is_a?(Array) } },    # 2 dimensional array
+          proc { |a| a.map(&:size).all? { |size| size == a.size } },        # row = cols
+          proc { |a| a.all? { |b| b.all? { |c| (0..9) === c.to_i } } },     # empty or 1 - 9
+          proc { |a| a.all? { |b| b.no_dup_of_non_zero_nums? } },           # no same number in 1 row
+          proc { |a| a.transpose.all? { |b| b.no_dup_of_non_zero_nums? } }, # no same number in 1 column
+          proc { |cells|                                                    # no same number in 1 set
+            s = 3; rng = (0...s)
+            sets = returning([]) { |sets|
+              rng.each do |r|
+                rng.each do |c|
+                  sets << rng.collect { |r2| rng.collect { |c2| cells[s*r+r2][s*c+c2] } }.flatten
+                end
+              end
+            }
+            sets.all? { |set| set.no_dup_of_non_zero_nums? }
+          }
         ]
         conditions.all? { |condition| condition.call(array) }
       end
 
       def valid_set?(cells)
-        values = cells.map(&:value).compact
-        values.size == values.uniq.size
+        cells.map(&:value).compact.uniq_contents?
       end
     end
 
     private
 
       def assert_valid_board(cells)
-        raise ArgumentError, 'Invalid Sudoku Board' unless Sudoku::Board.valid?(cells)
+        raise InvalidBoard, 'Invalid Sudoku Board' unless Sudoku::Board.valid?(cells)
       end
 
       def create(cells)

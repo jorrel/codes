@@ -34,15 +34,20 @@ Shoes.app(:width => 520, :height => 550) {
     button('Solve') {
       input = @cells.collect { |row| row.collect { |el| el.text } }
 
-      board = Sudoku::Board.new(input)
-      puts "given board: \n#{board.inspect}\n"
-
       begin
-        solution = board.solution
-        puts "solution: \n#{solution.inspect}"
-        alert "solution: \n#{solution.inspect}"
+        board = Sudoku::Board.new(input)
+
+        if solution = board.solution
+          alert "Solution: \n\n#{solution.inspect}"
+        else
+          alert "No Solution: \n\n No solution possible was found.\n Please check your board."
+        end
+
       rescue Timeout::Error
-        alert("Sudoku Solver is taking a very long time.\n Please check your board.")
+        alert("Computation Timeout: \n\n Sudoku Solver is taking a very long time.\n Please check your board.")
+
+      rescue Sudoku::InvalidBoard
+        alert("Invalid Board: \n\n The current board configuration is invalid.\n Please check your board.")
       end
     }
 

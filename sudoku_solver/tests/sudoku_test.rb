@@ -50,6 +50,21 @@ class SudokuBoardTest < Test::Unit::TestCase
     assert Sudoku::Board.valid?(VALID_BOARD)
     assert Sudoku::Board.valid?(VALID_ANSWER)
     assert !Sudoku::Board.valid?(VALID_BOARD[0..-2])
+
+    # check no duplicate within the same row
+    board = VALID_BOARD.map(&:dup)
+    board[0][1] = board[0][7] = 3
+    assert !Sudoku::Board.valid?(board)
+
+    # check no duplicate within the same column
+    board = VALID_BOARD.map(&:dup)
+    board[0][0] = board[5][0] = 2
+    assert !Sudoku::Board.valid?(board)
+
+    # check no duplicate within the same box set
+    board = VALID_BOARD.map(&:dup)
+    board[0][0] = board[2][1] = 9
+    assert !Sudoku::Board.valid?(board)
   end
 
   def test_board_converts_cells
@@ -63,19 +78,19 @@ class SudokuBoardTest < Test::Unit::TestCase
   def test_filled
     assert Sudoku::Board.new(VALID_ANSWER).send(:filled?)
     assert !Sudoku::Board.new(VALID_BOARD).send(:filled?)
-    assert Sudoku::Board.new(INVALID_ANSWER).send(:filled?), 'should still be filled even if invalid'
+    assert Sudoku::Board.unvalidated(INVALID_ANSWER).send(:filled?), 'should still be filled even if invalid'
   end
 
   def test_valid
     assert Sudoku::Board.new(VALID_ANSWER).send(:valid?)
     assert Sudoku::Board.new(VALID_BOARD).send(:valid?), 'should be valid even if not finished'
-    assert !Sudoku::Board.new(INVALID_ANSWER).send(:valid?)
+    assert !Sudoku::Board.unvalidated(INVALID_ANSWER).send(:valid?)
   end
 
   def test_finished
     assert Sudoku::Board.new(VALID_ANSWER).send(:finished?)
     assert !Sudoku::Board.new(VALID_BOARD).send(:finished?)
-    assert !Sudoku::Board.new(INVALID_ANSWER).send(:finished?)
+    assert !Sudoku::Board.unvalidated(INVALID_ANSWER).send(:finished?)
   end
 
   def test_valid_set
@@ -103,7 +118,7 @@ class SudokuBoardTest < Test::Unit::TestCase
   def test_to_a
     assert_equal VALID_ANSWER, Sudoku::Board.new(VALID_ANSWER).to_a
     assert_equal VALID_BOARD, Sudoku::Board.new(VALID_BOARD).to_a('_'), "should express blanks as '_'"
-    assert_equal INVALID_ANSWER, Sudoku::Board.new(INVALID_ANSWER).to_a
+    assert_equal INVALID_ANSWER, Sudoku::Board.unvalidated(INVALID_ANSWER).to_a
   end
 
   def test_next_blank_cell
