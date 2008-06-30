@@ -1,0 +1,25 @@
+# This is a test database config file
+
+# This should be fetched by default
+development:
+  adapter: mysql
+  database: mysql
+  username: root
+  password:
+  host: localhost
+
+# rails uses strings as keys for the yml file
+rails:
+  adapter: mysql
+  database: rails
+  username: root
+  password:
+  host: localhost
+
+# merb uses symbols as keys for the yml file
+:development:
+  :adapter: mysql
+  :database: merb
+  :username: root
+  :password:
+  :host: localhost
