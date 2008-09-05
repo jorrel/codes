@@ -1,4 +1,5 @@
 require 'yaml'
+require 'erb'
 
 class Queryer
 
@@ -18,7 +19,7 @@ class Queryer
     else
       config_file = File.join(Dir.pwd, DatabaseConfigLocation)
       if File.exists?(config_file)
-        config = YAML.load_file(config_file).recursively_symbolize_keys
+        config = YAML::load(ERB.new(IO.read(config_file)).result).recursively_symbolize_keys
         @config = config && config[:development]
       end
     end
