@@ -50,7 +50,6 @@ Main {
   }
 
   def run
-#     set_queryer_environment
     $queryer.override_config params.to_h.inject({}) { |h, (k,v)| h[k] = v.value; h }
     $queryer.perform params[:query].value
   end
