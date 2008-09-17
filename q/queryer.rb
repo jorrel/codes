@@ -11,23 +11,30 @@ class Queryer
   # provided and no database config file is loaded
   DefaultAdapter = 'mysql'
 
-  attr_reader :config
+  # default environment
+  DefaultEnvironment = 'development'
 
-  def initialize(config = nil)
+  attr_reader :config, :environment
+
+  def initialize(config = nil, environment = nil)
+    @environment = (environment || DefaultEnvironment).to_sym
     if config
       @config = config
     else
       config_file = File.join(Dir.pwd, DatabaseConfigLocation)
       if File.exists?(config_file)
         config = YAML::load(ERB.new(IO.read(config_file)).result).recursively_symbolize_keys
-        @config = config && config[:development]
+        @config = config && config[@environment]
       end
     end
     @config ||= {}
   end
 
   def perform(query)
-    puts "config: #{config.inspect}" if debug?
+    if debug?
+      puts "environment: #{environment}"
+      puts "config: #{config.inspect}"
+    end
     queryer.perform(query)
   end
 
@@ -45,17 +52,17 @@ class Queryer
 
   def queryer
     case config[:adapter] || DefaultAdapter
-    when 'mysql'   then MysqlQueryer.new(config)
-    when 'sqlite3' then Sqlite3Queryer.new(config)
+    when 'mysql'   then MysqlQueryer.new(config, @environment)
+    when 'sqlite3' then Sqlite3Queryer.new(config, @environment)
     else raise "Unknown adapter: #{config[:adapter]}"
     end
   end
-  
+
   def system_with_logging(command)
     puts command if debug?
     system_without_logging(command)
   end
-  
+
   alias :system_without_logging :system
   alias :system :system_with_logging
 end
