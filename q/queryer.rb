@@ -45,17 +45,24 @@ class Queryer
 
   def queryer
     case config[:adapter] || DefaultAdapter
-    when 'mysql' then MysqlQueryer.new(config)
+    when 'mysql'   then MysqlQueryer.new(config)
+    when 'sqlite3' then Sqlite3Queryer.new(config)
     else raise "Unknown adapter: #{config[:adapter]}"
     end
   end
+  
+  def system_with_logging(command)
+    puts command if debug?
+    system_without_logging(command)
+  end
+  
+  alias :system_without_logging :system
+  alias :system :system_with_logging
 end
 
 class MysqlQueryer < Queryer
   def perform(query)
-    command = "mysql #{flags} -e \"#{query}\""
-    puts command if debug?
-    system(command)
+    system "mysql #{flags} -e \"#{query}\""
   end
 
   def flags
@@ -64,6 +71,12 @@ class MysqlQueryer < Queryer
     fl << " -p#{config[:password]}" unless config[:password].nil? or config[:password].empty?
     fl << " #{config[:database] || 'mysql'}"
     fl
+  end
+end
+
+class Sqlite3Queryer < Queryer
+  def perform(query)
+    system "sqlite3 #{config[:database]} \"#{query}\""
   end
 end
 
