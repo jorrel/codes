@@ -16,7 +16,7 @@ class Object
     def rand_hex(bytes = 64)
       SecureRandom.hex(bytes)
     end
-  elsif !File.exists?('/dev/urandom')        # unix random generator
+  elsif File.exists?('/dev/urandom')        # unix random generator
     def rand_hex(bytes = 64)
       File.read('/dev/urandom', bytes).unpack('H*')[0]
     end
