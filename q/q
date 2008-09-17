@@ -6,7 +6,8 @@ require 'main'
 $:.unshift File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__)
 require 'queryer'
 
-$environment = ARGV.delete(ARGV.reject { |arg| arg =~ /(^-|.+=.+|\s+)/ }.first)
+possible_envs = ARGV.reject { |arg| arg =~ /(^-|.+=.+|\s+|\s|[^\w\_\-])/ }
+$environment = ARGV.delete(possible_envs.first) unless possible_envs.first == ARGV.last
 $queryer = Queryer.new(nil, $environment)
 
 Main {
