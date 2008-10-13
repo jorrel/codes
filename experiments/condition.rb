@@ -24,8 +24,12 @@ class Condition
   def add(object)
     unless (include?(object) rescue false)
       old_definition = definition
-      @definition = proc { |o| old_definition.call(o) or object.to_condition.include?(o) }
+      @definition = proc { |o| old_definition.call(o) and object.to_condition.include?(o) }
     end
+    self
+  end
+  
+  def to_condition
     self
   end
 end
@@ -72,7 +76,7 @@ else
     end
 
     def add_with_inspect(object)
-      set_inspect_code "proc { |o|\n #{@inspect}.call(o) or #{object.to_condition.to_s}.call(o) }"
+      set_inspect_code "proc { |o|\n #{@inspect}.call(o) and #{object.to_condition.to_s}.call(o) }"
       add_without_inspect(object)
     end
     alias :add_without_inspect :add
