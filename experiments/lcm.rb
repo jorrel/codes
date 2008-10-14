@@ -16,7 +16,7 @@ require 'mathn'
 # lcm(1..10)                  # 2520
 #
 def lcm(*nums)
-  nums = nums.collect { |n| n.to_a }.flatten.sort.reverse
+  nums = nums.collect { |n| [* n] }.flatten.sort.reverse
   p_facs = []
   primes = Prime.new
   max = nums.first
@@ -34,7 +34,7 @@ end
 # faster version
 #
 def lcm2(*nums)
-  nums = nums.collect { |n| n.to_a }.flatten.sort
+  nums = nums.collect { |n| [* n] }.flatten.sort
   p_facs = Hash[* nums.inject([]) { |pf, n| pf + n.prime_division }.sort.flatten]
   p_facs.inject(1) { |l, (n, e)| l * (n ** e) }
 end
