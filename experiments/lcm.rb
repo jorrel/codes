@@ -27,9 +27,34 @@ def lcm(*nums)
     end
   end
   nums.each { |n| p_facs << n if n > 1 }
-  return p_facs.inject(1) { |l, n| l * n }
+  p_facs.inject(1) { |l, n| l * n }
 end
 
+#
+# faster version
+#
+def lcm2(*nums)
+  nums = nums.collect { |n| n.to_a }.flatten.sort
+  p_facs = Hash[* nums.inject([]) { |pf, n| pf + n.prime_division }.sort.flatten]
+  p_facs.inject(1) { |l, (n, e)| l * (n ** e) }
+end
+
+
 if __FILE__ == $0
-  puts lcm(1..20)
+  if ARGV[0]
+    a = eval ARGV[0]
+  else
+    a = 1..20
+  end
+
+  require 'benchmark'
+
+  puts "lcm(#{a.inspect})\n\n"
+
+  Benchmark.bmbm do |x|
+    x.report('lcm ') { lcm(a) }
+    x.report('lcm2') { lcm2(a) }
+  end
+
+  puts "\nlcm : #{lcm(a)}\nlcm2: #{lcm2(a)}"
 end
