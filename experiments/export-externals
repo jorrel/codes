@@ -1,0 +1,36 @@
+#! /usr/bin/env ruby
+
+$usage = <<-end_usage
+  Usage:
+    export-externals [options] <source_path> <target_path>
+
+  Options:
+    --dry-run:  print the export commands only and not run it
+end_usage
+
+
+$dry_run = !!ARGV.delete('--dry-run')
+$source_path, $target_path = ARGV[0], ARGV[1]
+if $source_path.nil? or $target_path.nil?
+  puts $usage
+  exit(0)
+end
+
+
+externals = `svn status #{$source_path} | grep '^X' | awk '{print $2}'`.split("\n")
+if externals.empty?
+  puts "\nNo externals in #{$source_path}\n"
+  exit(0)
+end
+
+
+commands = externals.collect { |path|
+  "svn export #{path} " + File.join($target_path, path.sub(/^#{$source_path}/,''))
+}
+
+
+if $dry_run
+  commands.each(& method(:puts))
+else
+  commands.each(& method(:system))
+end
