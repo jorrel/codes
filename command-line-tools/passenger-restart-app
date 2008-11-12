@@ -1,0 +1,9 @@
+#! /usr/bin/env ruby
+
+if File.directory? File.join(Dir.pwd, 'public')
+  unless File.directory? File.join(Dir.pwd, 'tmp')
+    Dir.mkdir('tmp')
+  end
+
+  IO.popen "touch #{File.join Dir.pwd, 'tmp', 'restart.txt'}"
+end
