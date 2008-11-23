@@ -83,8 +83,6 @@ module Watcher
     end
 
     class Feed < Periodically
-      PossibleDateMethods = %w(pubDate updated)
-
       variables :uri, :last_updated
 
       def set_defaults
@@ -97,7 +95,6 @@ module Watcher
       end
 
       def refresh
-        rss = SimpleRSS.parse open(uri)
         log "#{rss.entries.size} items"
 
         if date_of(rss) > last_updated
