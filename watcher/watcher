@@ -89,7 +89,7 @@ module Watcher
 
       def set_defaults
         super
-        last_updated Time.now #- 2000
+        last_updated Time.now - 100000
       end
 
       def valid?
@@ -113,9 +113,11 @@ module Watcher
       end
 
       def date_of(item)
-        if pubDate = item.pubDate
+        if pubDate = (item.respond_to?(:pubDate) && item.pubDate) ||
+                     (item.respond_to?(:[]) && item[:pubDate])
           Time.parse pubDate.to_s.dup
-        elsif updated = item.updated
+        elsif updated = (item.respond_to?(:updated) && item.updated) ||
+                        (item.respond_to?(:[]) && item[:updated])
           updated
         else
           raise "No date for: #{item.inspect}"
@@ -189,26 +191,33 @@ module Watcher
   def self.log(message)
     puts "LOG #{message}"
   end
+
+
+  class Config
+    %w(feed counter).each do |watcher_type|
+      module_eval <<-end_eval
+        def #{watcher_type}(name, &block)
+          ::Watcher.add(:#{watcher_type}, name, &block)
+        end
+      end_eval
+    end
+
+    def load
+      files = ['~/.watcherrc', '.watcherrc'].map(& File.method(:expand_path))
+      config = files.detect(& File.method(:exists?))
+      if config
+        eval IO.read(config)
+      else
+        raise "No config file!"
+      end
+    end
+
+    def self.load
+      new.load
+    end
+  end
+
 end
 
-
-Watcher.add(:feed, 'Gnome-Do trunk') {
-  uri 'http://feeds.launchpad.net/~do-core/do/trunk/branch.atom'
-  interval 120
-}
-
-Watcher.add(:feed, 'jorrel on Twitter') {
-  uri 'http://twitter.com/statuses/user_timeline/13029682.atom'
-  interval 30
-}
-
-Watcher.add(:feed, 'Reddit') {
-  uri 'http://www.reddit.com/new.rss'
-  interval 30
-}
-
-# Watcher.add(:counter, 'Counter') {
-#   interval 2
-# }
-
+Watcher::Config.load
 Watcher.start

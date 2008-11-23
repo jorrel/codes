@@ -1,0 +1,19 @@
+
+feed('Gnome-Do trunk') {
+  uri 'http://feeds.launchpad.net/~do-core/do/trunk/branch.atom'
+  interval 120
+}
+
+#feed('jorrel on Twitter') {
+#  uri 'http://twitter.com/statuses/user_timeline/13029682.atom'
+#  interval 30
+#}
+#
+#feed('Reddit') {
+#  uri 'http://www.reddit.com/new.rss'
+#  interval 30
+#}
+#
+#counter('Counter') {
+#  interval 2
+#}
