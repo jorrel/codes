@@ -1,0 +1,214 @@
+#! /usr/bin/env ruby
+
+require 'rubygems'
+require 'simple-rss'
+require 'open-uri'
+require 'net/http'
+require 'threadify'
+require 'time'
+
+class Object
+  def variable(*args)
+    args.each do |arg|
+      self.class_eval <<-end_eval
+        def #{arg}(new_value = :unassigned)
+          if new_value == :unassigned
+            @#{arg}
+          else
+            @#{arg} = new_value
+          end
+        end
+        alias :#{arg}= :#{arg}
+      end_eval
+    end
+  end
+  alias :variables :variable
+end
+
+module Watcher
+
+  module Watched
+    class Base
+      variable :name
+
+      def initialize(name = nil, &block)
+        set_defaults
+        self.name = name if name
+        instance_eval(&block) if block_given?
+      end
+
+      def set_defaults
+        self.name = "Watched #{object_id}"
+      end
+
+      def valid?
+        not name.nil?
+      end
+
+      def log(message)
+        ::Watcher.log "(#{name}): #{message}"
+      end
+
+      def notify(message)
+        ::Watcher.notify(name, message)
+      end
+    end
+
+    class Periodically < Base
+      variable :interval
+
+      def set_defaults
+        super
+        self.interval = 60
+      end
+
+      def start
+        while true
+          begin
+            refresh
+          rescue Object => e
+            log("Error: #{e}\n#{e.backtrace.join("\n")}")
+            notify("Error:#{e}")
+          end
+          sleep interval
+        end
+      end
+
+      def refresh
+      end
+
+      def valid?
+        super and not interval.nil?
+      end
+    end
+
+    class Feed < Periodically
+      PossibleDateMethods = %w(pubDate updated)
+
+      variables :uri, :last_updated
+
+      def set_defaults
+        super
+        last_updated Time.now #- 2000
+      end
+
+      def valid?
+        super and not uri.nil?
+      end
+
+      def refresh
+        rss = SimpleRSS.parse open(uri)
+        log "#{rss.entries.size} items"
+
+        if date_of(rss) > last_updated
+          new_entries = rss.entries.select { |e| date_of(e) > last_updated }
+          if !new_entries.empty?
+            new_entries.sort_by { |e| date_of e }.each do |entry|
+              log entry.title
+              notify(entry.title)
+            end
+          end
+          last_updated date_of(rss)
+        end
+      end
+
+      def date_of(item)
+        if pubDate = item.pubDate
+          Time.parse pubDate.to_s.dup
+        elsif updated = item.updated
+          updated
+        else
+          raise "No date for: #{item.inspect}"
+        end
+      end
+    end
+
+    class Counter < Periodically
+      def set_defaults
+        super
+        interval 1
+      end
+
+      def refresh
+        @i ||= 0
+        @i += 1
+        notify(@i.to_s)
+      end
+    end
+
+    class Watcher < Base
+
+      def start
+        notify("Watcher started. Watching #{main.watched.size - 1} items")
+      end
+
+      def main
+        ::Watcher
+      end
+    end
+
+  end
+
+  # TODO
+  # - better sanitation
+  # - changeable notifier (mumbles, libnotify, etc)
+  def self.notify(title, message)
+    message.gsub!('`', '\'')
+    command = "mumbles-send \"#{title}\" \"#{message}\""
+    log command
+    system command
+  end
+
+  def self.add(type, name, &block)
+    @watched ||= []
+    @watched << Watcher::Watched.const_get(type.to_s.capitalize).new(name, &block)
+  end
+
+  def self.start
+    if @watched
+      watched = @watched
+      watched << Watcher::Watched::Watcher.new('watcher')
+      Thread.ify watched, :threads => watched.size do |w|
+        begin
+          w.start
+        rescue Object => e
+          puts "=========================================="
+          puts e
+          puts w.inspect
+          puts "=========================================="
+          raise e
+        end
+      end
+    end
+  end
+
+  def self.watched
+    @watched
+  end
+
+  def self.log(message)
+    puts "LOG #{message}"
+  end
+end
+
+
+Watcher.add(:feed, 'Gnome-Do trunk') {
+  uri 'http://feeds.launchpad.net/~do-core/do/trunk/branch.atom'
+  interval 120
+}
+
+Watcher.add(:feed, 'jorrel on Twitter') {
+  uri 'http://twitter.com/statuses/user_timeline/13029682.atom'
+  interval 30
+}
+
+Watcher.add(:feed, 'Reddit') {
+  uri 'http://www.reddit.com/new.rss'
+  interval 30
+}
+
+# Watcher.add(:counter, 'Counter') {
+#   interval 2
+# }
+
+Watcher.start
