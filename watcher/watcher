@@ -89,7 +89,7 @@ module Watcher
 
       def set_defaults
         super
-        last_updated Time.now - 100000
+        last_updated Time.now
       end
 
       def valid?
