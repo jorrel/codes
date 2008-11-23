@@ -38,7 +38,7 @@ module Watcher
       end
 
       def set_defaults
-        self.name = "Watched #{object_id}"
+        name "Watched #{object_id}"
       end
 
       def valid?
@@ -59,7 +59,7 @@ module Watcher
 
       def set_defaults
         super
-        self.interval = 60
+        interval 60
       end
 
       def start
@@ -95,6 +95,7 @@ module Watcher
       end
 
       def refresh
+        rss = SimpleRSS.parse open(uri)
         log "#{rss.entries.size} items"
 
         if date_of(rss) > last_updated
@@ -191,6 +192,11 @@ module Watcher
 
 
   class Config
+    Locations = [
+      '~/.watcherrc',
+      File.join(File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__), '.watcherrc')
+    ].map(& File.method(:expand_path))
+
     %w(feed counter).each do |watcher_type|
       module_eval <<-end_eval
         def #{watcher_type}(name, &block)
@@ -200,8 +206,7 @@ module Watcher
     end
 
     def load
-      files = ['~/.watcherrc', '.watcherrc'].map(& File.method(:expand_path))
-      config = files.detect(& File.method(:exists?))
+      config = Locations.detect(& File.method(:exists?))
       if config
         eval IO.read(config)
       else
