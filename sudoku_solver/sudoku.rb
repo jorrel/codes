@@ -24,7 +24,7 @@ module Sudoku
     end
 
     def solutions
-      Timeout.timeout(8) { find_solution }
+      Timeout.timeout(120) { find_solution }
     end
 
     def next_blank_cell

@@ -11,8 +11,10 @@
 
 require 'sudoku'
 require 'benchmark'
+require 'active_support'
 
 if not ARGV.empty? and File.exists?(ARGV[0])
+  require 'actionpack'
   require 'action_view/helpers/text_helper'
   extend ActionView::Helpers::TextHelper
 
